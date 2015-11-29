@@ -4,9 +4,10 @@ S3method(summary, mcemGLMM)
 S3method(anova, mcemGLMM)
 S3method(predict, mcemGLMM)
 S3method(residuals, mcemGLMM)
-importFrom("stats", "rnorm", "as.formula", "binomial", "get_all_vars", "glm", "model.matrix", "pchisq", "pnorm", "poisson", "terms", "ts.plot")
+S3method(coef, mcemGLMM)
+importFrom("stats", "rnorm", "as.formula", "binomial", "get_all_vars", "glm", "model.matrix", "pchisq", "pnorm", "poisson", "terms", "ts.plot", "lm")
 importFrom("utils", "tail")
 importFrom("trust", "trust")
-export(mcemGLMM, mcemGLMMext, summary.mcemGLMM, anova.mcemGLMM, contrasts.mcemGLMM, residuals.mcemGLMM, predict.mcemGLMM)
+export(mcemGLMM, mcemGLMMext, summary.mcemGLMM, anova.mcemGLMM, contrasts.mcemGLMM, residuals.mcemGLMM, predict.mcemGLMM, coef.mcemGLMM, ranef.mcemGLMM, covMat.mcemGLMM)
 
 

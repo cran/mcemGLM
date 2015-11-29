@@ -6,7 +6,7 @@
 }
 \usage{
 mcemGLMM(fixed, random, data, family = c("bernoulli", "poisson", 
-    "negbinom"), vcDist = c("normal", "t"), df, 
+    "negbinom", "gamma"), vcDist = c("normal", "t"), df, 
     controlEM = list(), controlTrust = list(), initial)
 }
 \arguments{
@@ -42,15 +42,16 @@ mcemGLMM(fixed, random, data, family = c("bernoulli", "poisson",
     \item{mcemEST}{a matrix with the value of the maximum likelihood 
     estimators at the end of each EM step.}
     \item{iMatrix}{Fisher's information matrix.}
-    \item{loglikeVal}{loglikelihood value (up to a constant) for the model. 
+    \item{QfunVal}{ value (up to a constant) of the Q function. 
       Used to perform likelihood ratio tests.}
-    \item{loglikeMCMC}{complete loglikelihood MCMC samples.}
+    \item{QfunMCMC}{Q function MCMC sample.}
     \item{randeff}{a sample from the conditional distribution of the 
       random effects given the data and the maximum likelihood estimators.}
     \item{y}{vector of observations.}
     \item{x}{design matrix for the fixed effects.}
     \item{z}{design matrix for the random effects.}
     \item{EMerror}{relative error at the last iteration. See details.}
+    \item{MCsd}{last value for MCMC step size.}
     \item{call}{original call.}
   }
 }
@@ -79,11 +80,11 @@ mcemGLMM(fixed, random, data, family = c("bernoulli", "poisson",
   A note on the negative binomial overdispersion:
   
   The variance for the negative binomial model is set equal to
-  \eqn{\mu(1 + 1/\alpha)} so we have that there is no overdispersion
-  as \eqn{\alpha} goes to infinity. However in the summary of a negative 
-  binomial model the parameter \eqn{\phi = 1 + 1/\alpha} estimation is
-  reported instead of \eqn{\alpha}. This leads to the convention that 
-  there is no over dispersion when \eqn{\phi = 1}.
+  \eqn{(1 + \mu/\alpha)} so we have that there is no overdispersion
+  as \eqn{\alpha} goes to infinity.
+  
+  The variance for the gamma distributionis set to \eqn{\mu^2/\alpha}. The value
+  of \eqn{\alpha = 1} corresponds to an exponential regression.
   
   Stopping rules and convergence criteria:
   
@@ -91,10 +92,12 @@ mcemGLMM(fixed, random, data, family = c("bernoulli", "poisson",
   the criteria 
   \deqn{\max_i \left\{ \frac{ |\theta_i^{(t)} - \theta_i^{(t-1)}|}{|\theta_i^{(t)}| + \delta}\right\} < \epsilon}{\max_i|\theta_i^(t)-\theta_i^(t-1)|/(|\theta_i^(t)| + \delta) < \epsilon}
   is satisfied three times in a row for pre-defined values of 
-  \eqn{\epsilon} and \eqn{\delta}. For a detailed discussion on 
-  convergence diagnostics see Neath R.C. (2012). After fitting a model 
-  it is recommended to plot the EM estimates at each step to assess 
-  convergence.
+  \eqn{\epsilon} and \eqn{\delta}. Once this criterion has been achieved 
+  two times we increase the Monte Carlo sample size more rapidly to 
+  have a better estimation of the model's information matrix. For 
+  a detailed discussion on convergence diagnostics see Neath R.C. (2012). 
+  After fitting a model it is recommended to plot the EM estimates 
+  at each step to assess convergence.
  
   Control options for EM:
   \describe{
@@ -108,7 +111,7 @@ mcemGLMM(fixed, random, data, family = c("bernoulli", "poisson",
     effects. This is useful to assess the performance of the algorithm 
     but it can impact the actual running time.}
     \item{MCsd}{initial standard deviation for the proposal density of 
-    the MCMC step. If null (default) an auto-tuning step will be 
+    the MCMC step. If zero (default) an auto-tuning step will be 
     performed.}
     \item{EMdelta}{constant for the EM error assessment.}
     \item{EMepsilon}{constant for the EM error assessment.}
@@ -141,7 +144,7 @@ summary(fit.1)
 # We can assess convergence by looking at a trace plot of the EM estimates
 # and the loglikelihood values
 ts.plot(fit.1$mcemEST)
-ts.plot(fit.1$loglikeVal)
+ts.plot(fit.1$QfunVal)
 
 # To fit a model with crossed random effects
 fit.crossed <- mcemGLMM(obs ~ x, random = list(~ 0 + z1, ~ 0 + z2), 

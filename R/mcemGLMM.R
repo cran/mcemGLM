@@ -15,7 +15,7 @@
 #   MCsd:     Standard deviation for the proposal step.
 
 mcemGLMM <- function(fixed, random, data, 
-                     family = c("bernoulli", "poisson", "negbinom"), 
+                     family = c("bernoulli", "poisson", "negbinom", "gamma"), 
                      vcDist = c("normal", "t"), df, controlEM = list(), 
                      controlTrust = list(), initial) {
   # Reading Y and X.
@@ -35,7 +35,7 @@ mcemGLMM <- function(fixed, random, data,
   xlabs <- colnames(kX)
   
   # Options
-  ctrl <- list(EMit = 80, MCit = 8000, MCf = 1.05, verb = FALSE, MCsd = 0, EMdelta = 0.05, EMepsilon = 0.025)
+  ctrl <- list(EMit = 40, MCit = 3000, MCf = 1.025, verb = 0, MCsd = 0, EMdelta = 0.05, EMepsilon = 0.02)
   ctrlN <- names(ctrl)
   ctrl[(controlN <- names(controlEM))] <- controlEM
   if(length(unkwn <- controlN[!controlN %in% ctrlN])){
@@ -43,7 +43,7 @@ mcemGLMM <- function(fixed, random, data,
   }
   
   # Options for trust
-  cTrust <- list(rinit = 20, rmax = 200, iterlim = 100)
+  cTrust <- list(rinit = 10, rmax = 200, iterlim = 100)
   cTrustNames <- names(cTrust)
   cTrust[(controlN <- names(controlTrust))] <- controlTrust
   if(length(unkwn <- controlN[!controlN %in% cTrustNames])){
@@ -73,10 +73,17 @@ mcemGLMM <- function(fixed, random, data,
         initial0 <-c(glm(fixed, family = poisson)$coefficients, 100)
       }
     }
+    if (family == "gamma") {
+      if(!missing(data)) {
+        initial0 <- c(lm(fixed, data = data)$coefficients, 1)
+      } else {
+        initial0 <-c(lm(fixed)$coefficients, 1)
+      }
+    }
     if(!is.list(random)) {
-      initial <- c(initial0, 5)
+      initial <- c(initial0, 4)
     } else {
-      initial <- c(initial0, rep(5, length(random)))
+      initial <- c(initial0, rep(4, length(random)))
     }
   }
   
@@ -104,6 +111,9 @@ mcemGLMM <- function(fixed, random, data,
       if (family == "negbinom") {
         fit0 <- mcemMLENegBinom_n(sigmaType, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
       }
+      if (family == "gamma") {
+        fit0 <- mcemMLEGamma_n(sigmaType, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
+      }
     } else {
       if (length(df) > 1) {
         stop("The number of variance components and the length of df must me equal.")
@@ -116,6 +126,9 @@ mcemGLMM <- function(fixed, random, data,
       }
       if (family == "negbinom") {
         fit0 <- mcemMLENegBinom_t_fixed_df(sigmaType, df, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
+      }
+      if (family == "gamma") {
+        fit0 <- mcemMLEGamma_t_fixed_df(sigmaType, df, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
       }
     }
   } else {
@@ -149,6 +162,9 @@ mcemGLMM <- function(fixed, random, data,
       if (family == "negbinom") {
         fit0 <- mcemMLENegBinom_n(sigmaType, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
       }
+      if (family == "gamma") {
+        fit0 <- mcemMLEGamma_n(sigmaType, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
+      }
     }
     
     # t random effects
@@ -165,12 +181,15 @@ mcemGLMM <- function(fixed, random, data,
       if (family == "negbinom") {
         fit0 <- mcemMLENegBinom_t_fixed_df(sigmaType, df, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
       }
+      if (family == "gamma") {
+        fit0 <- mcemMLEGamma_t_fixed_df(sigmaType, df, kKi, kLh, kLhi, kY, kX, kZ, initial, controlEM = ctrl, controlTrust = cTrust)
+      }
     }
   }
   
   # Some cleaning up.
   class(fit0) <- "mcemGLMM"
-  if (family != "negbinom") {
+  if (family == "bernoulli" | family == "poisson") {
     colnames(fit0$mcemEST) <- c(xlabs, zlabs)
   } else {
     colnames(fit0$mcemEST) <- c(xlabs, "alpha", zlabs)
@@ -190,7 +209,7 @@ mcemGLMM <- function(fixed, random, data,
     warning("Information matrix is not invertible.")
   }
   
-  if (sum(diag(fit0$iMatrix) < rep(0, length(diag(fit0$iMatrix))))) {
+  if (sum(diag(solve(fit0$iMatrix)) < rep(0, length(diag(fit0$iMatrix))))) {
     warning("Negative standard error estimate. \n This is possible due to Monte Carlo error. Extending the model with mcemGLMMext is recommended. See help(mcemGLMMext) for details.")
   }
   

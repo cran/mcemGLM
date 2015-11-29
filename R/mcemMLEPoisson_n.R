@@ -21,7 +21,7 @@ mcemMLEPoisson_n <- function (sigmaType, kKi, kLh, kLhi, kY, kX, kZ, initial, co
   beta <- initial[1:kP]
   sigma <- initial[-(1:kP)]
   
-  loglikeVal <- NULL
+  QfunVal <- NULL
   theta <- c(beta, sigma)
   ovSigma <- constructSigma(pars = sigma, sigmaType = sigmaType, kK = kK, kR = kR, kLh = kLh, kLhi = kLhi)
   
@@ -30,20 +30,20 @@ mcemMLEPoisson_n <- function (sigmaType, kKi, kLh, kLhi, kY, kX, kZ, initial, co
   
   # MCMC step size tuning
   if (controlEM$MCsd == 0) {
-    if (controlEM$verb == TRUE)
+    if (controlEM$verb >= 1)
       print("Tuning acceptance rate.")
     ar <- 1
     sdtune <- 1
     u <- rnorm(kK, rep(0, kK), sqrt(diag(ovSigma))) # Initial value for u
     while (ar > 0.4 | ar < 0.15) {
-      uSample.tmp <- uSamplerPoissonCpp_n(beta = beta, sigma = ovSigma, u = u, kY = kY, kX = kX, kZ = kZ, B = 1000, sd0 = sdtune)
-      ar <- length(unique(uSample.tmp[, 1])) / 1000
+      uSample.tmp <- uSamplerPoissonCpp_n(beta = beta, sigma = ovSigma, u = u, kY = kY, kX = kX, kZ = kZ, B = 5000, sd0 = sdtune)
+      ar <- length(unique(uSample.tmp[, 1])) / 5000
       if (ar < 0.15)
         sdtune <- 0.8 * sdtune
       if (ar > 0.4)
         sdtune <- 1.2 * sdtune
     }
-    if (controlEM$verb == TRUE)
+    if (controlEM$verb >= 1)
       print(ar)
     controlEM$MCsd <- sdtune
   }
@@ -59,66 +59,78 @@ mcemMLEPoisson_n <- function (sigmaType, kKi, kLh, kLhi, kY, kX, kZ, initial, co
     # Now we optimize.
     outTrust <- trust(toMaxDiagPoisson_n, parinit = theta, rinit = controlTrust$rinit, rmax = controlTrust$rmax, iterlim = controlTrust$iterlim, minimize = FALSE, u = uSample, sigmaType = sigmaType, kKi = kKi, kLh = kLh, kLhi = kLhi, kY = kY, kX = kX, kZ = kZ)
     
-    if (controlEM$verb == TRUE)
+    if (controlEM$verb >= 1)
       print(outTrust)
     outMLE[j, ] <- outTrust$argument
-    loglikeVal <- c(loglikeVal, outTrust$value)
+    QfunVal <- c(QfunVal, outTrust$value)
     
     # The current estimates are updated now
     beta <- outMLE[j, 1:kP]
     sigma <- outMLE[j, -c(1:kP)]
     theta <- c(beta, sigma)
     ovSigma <- constructSigma(pars = sigma, sigmaType = sigmaType, kK = kK, kR = kR, kLh = kLh, kLhi = kLhi)
-    if (controlEM$verb == TRUE) {
-      print(theta)
-      print(ts.plot(uSample[, sample(1:kK, 1)]))
+    if (controlEM$verb >= 1) {
+      print(outMLE[1:j, ])
+      if (controlEM$verb >= 2)
+        print(ts.plot(uSample[, sample(1:kK, 1)]))
     }
     
     # Retuning the MCMC step size.
     ar <- length(unique(uSample[, 1]))/controlEM$MCit
     if (ar < 0.15 | ar > 0.4) {
-      if (controlEM$verb == TRUE)
+      if (controlEM$verb >= 1)
         print("Tuning acceptance rate.")
       ar <- 1
       sdtune <- controlEM$MCsd
       u <- rnorm(kK, rep(0, kK), sqrt(diag(ovSigma))) # Initial value for u
       while (ar > 0.4 | ar < 0.15) {
-        uSample.tmp <- uSamplerPoissonCpp_n(beta = beta, sigma = ovSigma, u = u, kY = kY, kX = kX, kZ = kZ, B = 1000, sd0 = sdtune)
-        ar <- length(unique(uSample.tmp[, 1])) / 1000
+        uSample.tmp <- uSamplerPoissonCpp_n(beta = beta, sigma = ovSigma, u = u, kY = kY, kX = kX, kZ = kZ, B = 5000, sd0 = sdtune)
+        ar <- length(unique(uSample.tmp[, 1])) / 5000
         if (ar < 0.15)
           sdtune <- 0.9 * sdtune
         if (ar > 0.4)
           sdtune <- 1.1 * sdtune
       }
-      if (controlEM$verb == TRUE)
+      if (controlEM$verb >= 1)
         print(ar)
       controlEM$MCsd <- sdtune
     }
     
-    # The starting value for the next MCMC run is the mean of the previous iteration.
-    u <- colMeans(uSample)
-    # We modify the number of MCMC iterations
-    controlEM$MCit <- controlEM$MCit * controlEM$MCf
-    
     # Error checking
     error <- max(abs(outMLE[j, ] - outMLE[j - 1, ]) / (abs(outMLE[j, ]) + controlEM$EMdelta))
+    if(controlEM$verb >= 1)
+      print(error)
     if (error < controlEM$EMepsilon) {
       errorCounter <- c(errorCounter, 1)
     } else {
       errorCounter <- c(errorCounter, 0)
     }
+    
+    # We modify the number of MCMC iterations
+    if (j > 15 & controlEM$MCf < 1.1) {
+      controlEM$MCf <- 1.2
+    }
+    if (sum(errorCounter) >= 2 | j > 30) {
+      controlEM$MCf <- 1.5
+    }
+    controlEM$MCit <- controlEM$MCit * controlEM$MCf
+    
+    # Modify trust region
+    controlTrust$rinit <- 2 * max(abs(outMLE[j, ] - outMLE[j - 1, ]))
+    
     j <- j + 1
   }
   
   #Estimation of the information matrix.
   ovSigma <- constructSigma(pars = sigma, sigmaType = sigmaType, kK = kK, kR = kR, kLh = kLh, kLhi = kLhi)
-  uSample <- uSamplerPoissonCpp_n(beta = beta, sigma = ovSigma, u = u, kY = kY, kX = kX, kZ = kZ, B = controlEM$MCit, sd0 = controlEM$MCsd)
-  iMatrix <- iMatrixDiagPoissonCpp_n(beta = beta, sigma = ovSigma, uSample = uSample, kKi = kKi, kY = kY, kX = kX, kZ = kZ, B = controlEM$MCit, sd0 = controlEM$MCsd)
+  B0 <- controlEM$MCit/controlEM$MCf
+  uSample <- uSamplerPoissonCpp_n(beta = beta, sigma = ovSigma, u = u, kY = kY, kX = kX, kZ = kZ, B = B0, sd0 = controlEM$MCsd)
+  iMatrix <- iMatrixDiagPoissonCpp_n(beta = beta, sigma = ovSigma, uSample = uSample, kKi = kKi, kY = kY, kX = kX, kZ = kZ, B = B0, sd0 = controlEM$MCsd)
   
   colnames(uSample) <- colnames(kZ)
   
   # loglikehood MCMC
-  loglikeMCMC <- MCMCloglikelihoodPoissonCpp_n(beta = beta, sigma = ovSigma, u = uSample, kY = kY, kX = kX, kZ = kZ)
+  QfunMCMC <- MCMCloglikelihoodPoissonCpp_n(beta = beta, sigma = ovSigma, u = uSample, kY = kY, kX = kX, kZ = kZ)
   
-  return(list(mcemEST = outMLE, iMatrix = iMatrix, loglikeVal = loglikeVal, loglikeMCMC = loglikeMCMC, randeff = uSample, y = kY, x = kX, z = kZ, EMerror = error))
+  return(list(mcemEST = outMLE, iMatrix = iMatrix, QfunVal = QfunVal, QfunMCMC = QfunMCMC, randeff = uSample, y = kY, x = kX, z = kZ, EMerror = error, MCsd = controlEM$MCsd))
 }
