@@ -3,7 +3,7 @@
 \alias{coef.mcemGLMM}
 \title{Anova method for mcemGLMM objects}
 \description{
-  Extract the fixed effect coeffcients from a model fitted with \code{mcemGLMM}.
+  Extract the fixed effect coefficients from a model fitted with \code{mcemGLMM}.
 }
 \usage{
 \method{coef}{mcemGLMM}(object, ...)

@@ -9,7 +9,7 @@ Generalized Linear Mixed Model Estimation via Monte Carlo EM
 \code{mcemGLM} performs maximum likelihood estimation for logistic, 
 Poisson, and negative binomial regression when random effects are 
 present. The package uses an MCEM algorithm to estimate the model's 
-fixed paramters and variance components with their respective 
+fixed parameters and variance components with their respective 
 standard errors.
 
 A Wald test based \code{anova} is available to test significance of 
@@ -19,7 +19,7 @@ multi-leveled variables and for multiple contrast testing.
 \tabular{ll}{
 Package: \tab mcemGLM\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
+Version: \tab 1.1.1\cr
 Date: \tab 2015-05-22\cr
 License: \tab GPL (>= 2)\cr
 }

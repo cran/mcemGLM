@@ -19,4 +19,4 @@
 \author{
 Felipe Acosta Archila <acosta@umn.edu>
 }
-\keyword{glmm, residuals}
+\concept{residuals}

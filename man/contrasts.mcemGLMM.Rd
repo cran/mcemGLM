@@ -11,7 +11,6 @@ contrasts.mcemGLMM(object, ctr.mat)
   \item{object}{a model fitted with the mcemGLMM function.}
   \item{ctr.mat}{contrast matrix. Each row corresponds to a 
     linear combination of the fixed effect coefficients.}
-  \item{...}{additional arguments.}
 }
 \value{
   A matrix with each row corresponding to a contrast and with the following columns:

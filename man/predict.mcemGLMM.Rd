@@ -12,7 +12,7 @@
   \item{object}{a model fitted with the mcemGLMM function.}
   \item{newdata}{optional data frame with new data. The variable names must match the original variables. If missing, the function will return predicted values at each observation.}
   \item{type}{character string. The type of predictions to be returned. Either "link" or "response" predictions are available.}
-  \item{se.fit}{logical. If true, standard erros will be returned.}
+  \item{se.fit}{logical. If true, standard errors will be returned.}
   \item{...}{additional arguments.}
 }
 \value{
@@ -21,4 +21,4 @@
 \author{
 Felipe Acosta Archila <acosta@umn.edu>
 }
-\keyword{glmm, prediction}
+\concept{glmm}

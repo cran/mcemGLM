@@ -83,7 +83,7 @@ mcemGLMM(fixed, random, data, family = c("bernoulli", "poisson",
   \eqn{(1 + \mu/\alpha)} so we have that there is no overdispersion
   as \eqn{\alpha} goes to infinity.
   
-  The variance for the gamma distributionis set to \eqn{\mu^2/\alpha}. The value
+  The variance for the gamma distribution is set to \eqn{\mu^2/\alpha}. The value
   of \eqn{\alpha = 1} corresponds to an exponential regression.
   
   Stopping rules and convergence criteria:
