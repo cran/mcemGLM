@@ -2,8 +2,8 @@ Package: mcemGLM
 Type: Package
 Title: Maximum Likelihood Estimation for Generalized Linear Mixed
         Models
-Version: 1.1.1
-Date: 2020-2-26
+Version: 1.1.2
+Date: 2023-1-12
 Author: Felipe Acosta Archila
 Maintainer: Felipe Acosta Archila <acosta@umn.edu>
 Description: Maximum likelihood estimation for generalized linear mixed models via Monte Carlo EM.
@@ -15,6 +15,6 @@ Imports: Rcpp (>= 0.11.3)
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: true
 NeedsCompilation: yes
-Packaged: 2020-03-03 12:19:24 UTC; Felip
+Packaged: 2023-01-23 21:15:28 UTC; Felip
 Repository: CRAN
-Date/Publication: 2020-03-03 22:30:02 UTC
+Date/Publication: 2023-01-24 08:30:12 UTC

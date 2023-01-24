@@ -41,7 +41,7 @@ double margloglikelihoodLogitCpp_t(const arma::vec& beta, const arma::mat& sigma
   double loglike;
   
   for (int i = 0; i < kM; i++) {
-    loglike =+ exp(loglikelihoodLogitCpp_t(beta, sigma, sigmaType, u.row(i).t(), df, kKi, kLh, kLhi, kY, kX, kZ)) / kM;
+    loglike += exp(loglikelihoodLogitCpp_t(beta, sigma, sigmaType, u.row(i).t(), df, kKi, kLh, kLhi, kY, kX, kZ)) / kM;
   }
   
   return log(loglike);

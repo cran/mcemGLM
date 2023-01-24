@@ -57,7 +57,7 @@ double margloglikelihoodLogitCpp_n(const arma::vec& beta, const arma::mat& sigma
   double loglike = 0;
   
   for (int i = 0; i < kM; i++) {
-    loglike =+ partialLogitCpp_n(beta, sigma, u.row(i).t(), kY, kX, kZ);
+    loglike += partialLogitCpp_n(beta, sigma, u.row(i).t(), kY, kX, kZ);
   }
   
   return log(loglike / kM);

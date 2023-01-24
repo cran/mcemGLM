@@ -19,6 +19,6 @@ Salamander mating experiment data from McCullagh and Nelder.
 }
 
 \references{
-McCullagh, P and Nelder J. A. (1989) Generalized Linear Models, Second Edition. Chapman \& Hall, 1989
+McCullagh, P and Nelder J. A. (1989) Generalized Linear Models, Second Edition. Chapman and Hall, 1989
 }
 \keyword{datasets}

@@ -1,5 +1,5 @@
 mcemGLMMext <- function(object, it = 20, controlEM) {
-  if (class(object) != "mcemGLMM") {
+  if (!inherits(object, 'mcemGLMM')) {
     stop("Wrong object type.")
   }
   
