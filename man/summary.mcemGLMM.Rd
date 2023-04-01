@@ -19,7 +19,7 @@
       and the predicted random effects.}
     \item{var.est}{the estimated variances for each variance component.}
     \item{std.err}{the standard errors for the fixed effects 
-      coeffcients and the variance estimates.}
+      coefficients and the variance estimates.}
     \item{z.val}{z test values for the fixed effects coefficients and 
       the variance estimators.}
   }
